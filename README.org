@@ -1,0 +1,20 @@
+* EmacSthenno
+
+Custom Emacs build
+
+** Included Patches
+
+This build includes several patches to enhance Emacs functionality:
+
+- ns-alpha-background.patch: Enables proper background transparency support
+- pdumper-size-increase.patch: Increases pdumper size limit
+- system-appearance.patch: Improves system appearance integration
+- fix-window-role.patch: Fixes window role issues
+- block-align.patch: Improves block alignment handling
+
+** Installation
+
+#+begin_src sh
+brew tap neoheartbeats/emacsthenno
+brew install emacsthenno
+#+end_src
