@@ -15,6 +15,6 @@ This build includes several patches to enhance Emacs functionality:
 ** Installation
 
 #+begin_src sh
-brew tap neoheartbeats/emacsthenno
+brew tap neoheartbeats/homebrew-emacsthenno
 brew install emacsthenno
 #+end_src
