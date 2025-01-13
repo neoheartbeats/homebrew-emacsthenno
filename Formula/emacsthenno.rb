@@ -2,6 +2,25 @@
 
 require_relative "../Library/EmacsBase"
 
+module EmacsPatchHelper
+  def self.formula_dir
+    File.expand_path("../..", __FILE__)
+  end
+
+  def self.patches_dir
+    File.join(formula_dir, "patches")
+  end
+
+  def self.patch_sha256(name)
+    require "digest"
+    Digest::SHA256.file(File.join(patches_dir, name)).hexdigest
+  end
+
+  def self.available_patches
+    Dir[File.join(patches_dir, "*.patch")].map { |f| File.basename(f) }
+  end
+end
+
 class EmacSthenno < EmacsBase
   desc "Sthenno's patch of GNU Emacs"
   homepage "https://www.gnu.org/software/emacs/"
@@ -35,20 +54,10 @@ class EmacSthenno < EmacsBase
   depends_on "tree-sitter"
   depends_on "libmps"
 
-  def patches_path
-    @patches_path ||= File.expand_path("../../patches", __FILE__)
-  end
-
-  def patch_sha256(name)
-    require "digest"
-    Digest::SHA256.file(File.join(patches_path, name)).hexdigest
-  end
-
-  Dir[File.join(patches_path, "*.patch")].sort.each do |patch_file|
-    patch_name = File.basename(patch_file)
+  EmacsPatchHelper.available_patches.each do |patch_name|
     resource patch_name do
       url "https://raw.githubusercontent.com/neoheartbeats/homebrew-emacsthenno/main/patches/#{patch_name}"
-      sha256 patch_sha256(patch_name)
+      sha256 EmacsPatchHelper.patch_sha256(patch_name)
     end
   end
 
@@ -98,6 +107,7 @@ class EmacSthenno < EmacsBase
     system "./autogen.sh"
 
     resources.each do |r|
+      next unless r.name.end_with?(".patch")
       r.stage do
         ohai "Applying patch: #{r.name}"
         system "patch", "-p1", "-i", Pathname.pwd/r.name, "-d", buildpath
