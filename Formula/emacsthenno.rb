@@ -21,7 +21,7 @@ module EmacsPatchHelper
   end
 end
 
-class EmacSthenno < EmacsBase
+class Emacsthenno < EmacsBase
   desc "Sthenno's patch of GNU Emacs"
   homepage "https://www.gnu.org/software/emacs/"
   version "31.0.50"
