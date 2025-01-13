@@ -78,7 +78,6 @@ class Emacsthenno < EmacsBase
       --with-rsvg
       --with-xml2
       --with-webp
-      --with-poll
     ]
 
     make_flags = []
@@ -86,9 +85,6 @@ class Emacsthenno < EmacsBase
     gcc_version = Formula["gcc"].any_installed_version
     gcc_version_major = gcc_version.major
     gcc_lib = "#{HOMEBREW_PREFIX}/lib/gcc/#{gcc_version_major}"
-
-    ENV.append "CFLAGS", "-I#{Formula["gcc"].include}"
-    ENV.append "CFLAGS", "-I#{Formula["libgccjit"].include}"
 
     ENV.append "LDFLAGS", "-L#{gcc_lib}"
     ENV.append "LDFLAGS", "-I#{Formula["gcc"].include}"
@@ -115,19 +111,38 @@ class Emacsthenno < EmacsBase
     end
 
     system "./configure", *args
-
+    system "make", "clean"
     system "make", *make_flags
+
+    icons_dir = buildpath/"nextstep/Emacs.app/Contents/Resources"
+
+    ICONS.each_key do |icon|
+      if build.with? icon
+        rm "#{icons_dir}/Emacs.icns"
+        resource(icon).stage do
+          icons_dir.install Dir["*.icns*"].first => "Emacs.icns"
+          ohai "Installing " + icon + " icon"
+        end
+      end
+    end
+
     system "make", "install"
 
-    prefix.install "nextstep/Emacs.app"
-    prefix.install_metafiles
+    prefix.install Dir["nextstep/Emacs.app"]
+    (prefix/"Emacs.app/Contents").install "native-lisp" if File.directory?("native-lisp")
 
-    (prefix/"Emacs.app/Contents").install "native-lisp"
-
+    (bin/"emacs").unlink if File.exist?(bin/"emacs")
     (bin/"emacs").write <<~EOS
-      #!/bin/bash
-      exec #{prefix}/Emacs.app/Contents/MacOS/Emacs "$@"
+        #!/bin/bash
+        exec #{prefix}/Emacs.app/Contents/MacOS/Emacs "$@"
     EOS
+  end
+
+  def post_install
+    emacs_info_dir = info/"emacs"
+    Dir.glob(emacs_info_dir/"*.info") do |info_filename|
+      system "install-info", "--info-dir=#{emacs_info_dir}", info_filename
+    end
   end
 
   def caveats
@@ -142,8 +157,8 @@ class Emacsthenno < EmacsBase
   service do
     run [opt_bin/"emacs", "--fg-daemon"]
     keep_alive true
-    log_path "/tmp/homebrew.mxcl.emacs-thenno.stdout.log"
-    error_log_path "/tmp/homebrew.mxcl.emacs-thenno.stderr.log"
+    log_path "/tmp/homebrew.mxcl.emacsthenno.stdout.log"
+    error_log_path "/tmp/homebrew.mxcl.emacsthenno.stderr.log"
   end
 
   test do
