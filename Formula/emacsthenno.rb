@@ -131,6 +131,9 @@ class Emacsthenno < EmacsBase
     prefix.install Dir["nextstep/Emacs.app"]
     (prefix/"Emacs.app/Contents").install "native-lisp" if File.directory?("native-lisp")
 
+    (bin/"ctags").unlink
+    (man1/"ctags.1.gz").unlink
+
     (bin/"emacs").unlink if File.exist?(bin/"emacs")
     (bin/"emacs").write <<~EOS
         #!/bin/bash
